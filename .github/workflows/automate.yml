@@ -1,0 +1,31 @@
+name: Automate APK Mod
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apktool
+          curl -LO https://github.com/GoogleAndroid/tools-base/releases/download/1.0.0/apksigner-cli-1.0.0-linux.zip
+          unzip apksigner-cli-1.0.0-linux.zip
+          sudo mv apksigner /usr/local/bin/
+
+      - name: Run automation script
+        run: |
+          python3 src/automate.py
