@@ -2,7 +2,7 @@ name: Automate APK Mod
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight
+    - cron: '0 0 * * *'  # Runs daily at midnight
   workflow_dispatch:
 
 jobs:
@@ -13,10 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Java
-        uses: actions/setup-java@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          java-version: '11'
+          python-version: '3.x'
 
       - name: Install dependencies
         run: |
@@ -24,6 +24,28 @@ jobs:
           sudo apt-get install -y apktool
           curl -LO https://github.com/GoogleAndroid/tools-base/releases/download/1.0.0/apksigner-cli-1.0.0-linux.zip
           unzip apksigner-cli-1.0.0-linux.zip
+          sudo mv apksigner /usr/local/bin/
+
+      - name: Run download APK script
+        run: |
+          python3 scripts/download_apk.py
+
+      - name: Run decompile and recompile script
+        run: |
+          python3 scripts/decompile_recompile.py
+
+      - name: Run sign APK script
+        run: |
+          python3 scripts/sign_apk.py
+
+      - name: Create GitHub release
+        run: |
+          python3 scripts/github_release.py
+
+      - name: Send update to Telegram
+        run: |
+          python3 scripts/telegram_bot.py
+
           sudo mv apksigner /usr/local/bin/
 
       - name: Run automation script
