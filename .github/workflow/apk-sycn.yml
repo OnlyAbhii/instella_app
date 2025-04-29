@@ -1,0 +1,29 @@
+name: Sync InstaAlpha APK
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch latest release info from InstaAlpha
+        id: get_release
+        run: |
+          curl -s https://api.github.com/repos/Iamzainnnn/InstaAlpha/releases/latest > release.json
+          echo "APK_URL=$(jq -r '.assets[] | select(.name | endswith(\".apk\")) | .browser_download_url' release.json)" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$(jq -r '.tag_name' release.json)" >> $GITHUB_OUTPUT
+
+      - name: Download latest APK
+        run: |
+          curl -L "${{ steps.get_release.outputs.APK_URL }}" -o InstaAlpha.apk
+
+      - name: Create new release in your repo
+        run: |
+          NEW_TAG="mirror-${{ steps.get_release.outputs.TAG_NAME }}-$(date +'%H%M')"
+          gh release create "$NEW_TAG" InstaAlpha.apk --title "InstaAlpha Re-release $NEW_TAG" --notes "Auto-synced from Iamzainnnn/InstaAlpha"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
