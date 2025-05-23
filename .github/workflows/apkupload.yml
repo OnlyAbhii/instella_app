@@ -17,7 +17,8 @@ jobs:
         run: |
           TAG_NAME="${{ github.event.release.tag_name }}"
           CHANGELOG=$(echo "${{ github.event.release.body }}" | sed ':a;N;$!ba;s/\r//g; s/\n/%0A/g')
-          APK_URL=$(echo "${{ toJson(github.event.release.assets) }}" | jq -r '.[] | select(.name | endswith(".apk")) | .browser_download_url')
+          
+          APK_URL=$(jq -r '.release.assets[] | select(.name | endswith(".apk")) | .browser_download_url' "$GITHUB_EVENT_PATH")
 
           MESSAGE="<b>Instella ${TAG_NAME}</b>%0A%0A<b>📰 Changelog:-</b>%0A${CHANGELOG}"
 
