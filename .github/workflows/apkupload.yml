@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug print event JSON (first 20 lines)
+        run: head -n 20 "$GITHUB_EVENT_PATH"
+
+      - name: Check jq version
+        run: jq --version
+
       - name: Send Telegram Notification
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -17,8 +23,10 @@ jobs:
         run: |
           TAG_NAME="${{ github.event.release.tag_name }}"
           CHANGELOG=$(echo "${{ github.event.release.body }}" | sed ':a;N;$!ba;s/\r//g; s/\n/%0A/g')
-          
-          APK_URL=$(jq -r '.release.assets[] | select(.name | endswith(".apk")) | .browser_download_url' "$GITHUB_EVENT_PATH")
+
+          APK_URL=$(jq -r '.release.assets // [] | .[] | select(.name | endswith(".apk")) | .browser_download_url' "$GITHUB_EVENT_PATH")
+
+          echo "APK_URL is: $APK_URL"
 
           MESSAGE="<b>Instella ${TAG_NAME}</b>%0A%0A<b>📰 Changelog:-</b>%0A${CHANGELOG}"
 
