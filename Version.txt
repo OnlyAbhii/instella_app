@@ -1,0 +1,1 @@
+{'ver1':'5', 'ver2':'00', 'url':'https://t.me/instax_lite'}
