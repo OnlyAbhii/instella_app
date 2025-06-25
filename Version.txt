@@ -1,1 +1,1 @@
-{'ver1':'7', 'ver2':'00', 'url':'https://t.me/instella_apk'}
+{'ver1':'1', 'ver2':'00', 'url':'https://t.me/instella_apk'}
