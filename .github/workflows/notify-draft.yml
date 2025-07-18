@@ -2,19 +2,19 @@ name: Notify Admin - Release Alert
 
 on:
   release:
-    types: [published]
+    types: [created, published]
   workflow_dispatch:
 
 jobs:
   notify_admin:
     runs-on: ubuntu-latest
     steps:
-      - name: Set Environment Variables
+      - name: Set release info from GitHub context
         run: |
           echo "VERSION=${{ github.event.release.tag_name || 'Manual' }}" >> $GITHUB_ENV
-          echo "RELEASE_URL=${{ github.event.release.html_url || 'https://github.com/${{ github.repository }}/releases' }}" >> $GITHUB_ENV
+          echo "IS_DRAFT=${{ github.event.release.draft || 'false' }}" >> $GITHUB_ENV
           echo "IS_PRERELEASE=${{ github.event.release.prerelease || 'false' }}" >> $GITHUB_ENV
-        shell: bash
+          echo "RELEASE_URL=${{ github.event.release.html_url || format('https://github.com/{0}/releases', github.repository) }}" >> $GITHUB_ENV
 
       - name: Send Telegram Alert
         env:
@@ -22,11 +22,17 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_GROUP_ID }}
           VERSION: ${{ env.VERSION }}
           RELEASE_URL: ${{ env.RELEASE_URL }}
-          IS_PRERELEASE: ${{ env.IS_PRERELEASE }}
+          IS_DRAFT: ${{ env.IS_DRAFT }}
         run: |
-          MESSAGE="🛠️ *Release Notification!*\n\n📦 Version: *${VERSION}*\n🔗 [View Release on GitHub](${RELEASE_URL})\n\nStatus: $([ \"$IS_PRERELEASE\" = \"true\" ] && echo 'Pre-release for testing' || echo 'Published release')"
+          if [ "$IS_DRAFT" = "true" ]; then
+            STATUS="📝 *Draft Release*"
+          else
+            STATUS="🚀 *Release Published*"
+          fi
+
+          TEXT="$STATUS\n\n📦 *Version:* ${VERSION}\n🔗 [View on GitHub](${RELEASE_URL})\n\nPlease test or verify it accordingly."
 
           curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage \
             -d chat_id="${TELEGRAM_CHAT_ID}" \
             -d parse_mode="Markdown" \
-            -d text="$MESSAGE"
+            -d text="$TEXT"
