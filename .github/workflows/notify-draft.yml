@@ -1,26 +1,22 @@
-name: Notify Admin - Draft Release
+name: Notify Admin - Pre-release
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   notify_admin:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Telegram Alert for Draft Release
+      - name: Send Telegram Alert for Pre-release
+        if: ${{ github.event.release.prerelease }}
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_GROUP_ID }}
           VERSION: ${{ github.event.release.tag_name }}
-          IS_DRAFT: ${{ github.event.release.draft }}
           RELEASE_URL: ${{ github.event.release.html_url }}
         run: |
-          if [ "$IS_DRAFT" = "true" ]; then
-            curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage \
-              -d chat_id="${TELEGRAM_CHAT_ID}" \
-              -d parse_mode="Markdown" \
-              -d text="🛠️ *Draft Release Created!*\n\n📦 Version: *${VERSION}*\n🔗 [View Draft on GitHub](${RELEASE_URL})\n\nPlease test it before publishing."
-          else
-            echo "Not a draft release. Skipping Telegram message."
-          fi
+          curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d parse_mode="Markdown" \
+            -d text="🛠️ *Pre-release Created!*\n\n📦 Version: *${VERSION}*\n🔗 [View Release on GitHub](${RELEASE_URL})\n\nPlease test this version before publishing it live."
