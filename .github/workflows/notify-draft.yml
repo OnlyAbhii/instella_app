@@ -6,10 +6,10 @@ on:
 
 jobs:
   notify_admin:
+    if: ${{ github.event.release.prerelease }}  # Only for pre-releases
     runs-on: ubuntu-latest
     steps:
-      - name: Send Telegram Alert for Pre-release
-        if: ${{ github.event.release.prerelease }}
+      - name: Send Telegram Alert
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_GROUP_ID }}
@@ -19,4 +19,4 @@ jobs:
           curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage \
             -d chat_id="${TELEGRAM_CHAT_ID}" \
             -d parse_mode="Markdown" \
-            -d text="🛠️ *Pre-release Created!*\n\n📦 Version: *${VERSION}*\n🔗 [View Release on GitHub](${RELEASE_URL})\n\nPlease test this version before publishing it live."
+            -d text="🛠️ *Pre-release Created!*\n\n📦 Version: *${VERSION}*\n🔗 [View Release on GitHub](${RELEASE_URL})\n\nPlease test before publishing!"
